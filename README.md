@@ -29,3 +29,44 @@ El tablero permite visualizar, analizar y predecir el comportamiento de las vari
 
 ## 🧩 Estructura del proyecto
 
+---
+
+## 📊 Características principales
+
+✅ Conexión funcional a base de datos **InfluxDB**  
+✅ Visualización interactiva de las variables **DHT22 y MPU6050**  
+✅ Cálculo de **KPIs en tiempo real** (valor actual, variación, promedio, máx/min)  
+✅ Filtros de **rango de tiempo, frecuencia y variables**  
+✅ **Detección de anomalías** (Z-Score configurable)  
+✅ **Modelo predictivo lineal** para estimar tendencias futuras  
+✅ **Exportación de datos CSV** y actualización automática  
+
+---
+
+## 🔍 Capturas del tablero
+
+### 📈 Tablero principal
+![Dashboard](docs/dashboard.png)
+
+### 🚨 Detección de anomalías
+![Anomalías](docs/anomalias.png)
+
+### 🔮 Predicción lineal
+![Predicción](docs/prediccion.png)
+
+---
+
+## 🧠 Método predictivo aplicado
+
+El modelo predictivo implementado se basa en una **Regresión Lineal Simple**, donde se toma el tiempo (en segundos) como variable independiente y la variable industrial (temperatura, humedad o vibración) como dependiente.  
+El modelo se ajusta sobre los datos históricos y proyecta un **horizonte configurable en minutos**.  
+Se complementa con un **promedio móvil** para suavizar la tendencia y eliminar ruido.
+
+---
+
+## 🚀 Ejecución local
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+
