@@ -28,6 +28,17 @@ El tablero permite visualizar, analizar y predecir el comportamiento de las vari
 ---
 
 ## 🧩 Estructura del proyecto
+```markdown
+## 🧩 Estructura del proyecto
+
+| Archivo / Carpeta | Descripción |
+|--------------------|-------------|
+| 📄 **app.py** | Código principal de la aplicación Streamlit. Contiene toda la lógica de conexión, visualización y predicción. |
+| 📄 **requirements.txt** | Dependencias del proyecto necesarias para ejecutar el dashboard. |
+| 🧾 **README.md** | Documento con la descripción general, objetivos y guía de uso. |
+| 🔒 **.streamlit/secrets.toml** | Archivo de configuración con credenciales (no se publica en GitHub). |
+| 🖼️ **/docs/** | Imágenes o capturas del dashboard para el informe y el README. |
+| 💾 **/data/** | Datos exportados o pruebas locales. |
 
 ---
 
@@ -41,20 +52,6 @@ El tablero permite visualizar, analizar y predecir el comportamiento de las vari
 ✅ **Modelo predictivo lineal** para estimar tendencias futuras  
 ✅ **Exportación de datos CSV** y actualización automática  
 
----
-
-## 🔍 Capturas del tablero
-
-### 📈 Tablero principal
-![Dashboard](docs/dashboard.png)
-
-### 🚨 Detección de anomalías
-![Anomalías](docs/anomalias.png)
-
-### 🔮 Predicción lineal
-![Predicción](docs/prediccion.png)
-
----
 
 ## 🧠 Método predictivo aplicado
 
