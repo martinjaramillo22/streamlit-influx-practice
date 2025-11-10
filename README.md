@@ -27,7 +27,11 @@ El tablero permite visualizar, analizar y predecir el comportamiento de las vari
 
 ---
 
-## 🧩 Estructura del proyecto
+
+---
+
+Si quieres hacerlo **más visual (como en repos profesionales)**, puedes añadir íconos y breves descripciones así:
+
 ```markdown
 ## 🧩 Estructura del proyecto
 
