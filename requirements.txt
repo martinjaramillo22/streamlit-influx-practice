@@ -1,6 +1,6 @@
-influxdb-client
-pandas
 streamlit
-matplotlib
+pandas
+numpy
 plotly
+influxdb-client
 scikit-learn
