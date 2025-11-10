@@ -33,9 +33,9 @@ El tablero permite visualizar, analizar y predecir el comportamiento de las vari
 Si quieres hacerlo **más visual (como en repos profesionales)**, puedes añadir íconos y breves descripciones así:
 
 ```markdown
-## 🧩 Estructura del proyecto
+##  Estructura del proyecto
 
-📁 **/digitalizacion-extreme/**  
+ **/digitalizacion-extreme/**  
 │  
 ├── **app.py** → Código principal del tablero en Streamlit.  
 │   Contiene la conexión a InfluxDB, visualización, KPIs y modelo predictivo.  
