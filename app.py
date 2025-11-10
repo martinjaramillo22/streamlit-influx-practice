@@ -17,26 +17,19 @@ st.set_page_config(page_title="📊 Digitalización de Planta — Extreme Manufa
 st.title("📊 Tablero de Monitoreo y Análisis Predictivo — Extreme Manufacturing")
 st.caption("DHT22 (Temperatura/Humedad) • MPU6050 (Vibración/Giro) • InfluxDB + Streamlit")
 
-# --- Carga de credenciales desde secretos (NO hardcodear) ---
-# En Streamlit Cloud: Configura en Secrets:
-# [influxdb]
-# url = "https://us-east-1-1.aws.cloud2.influxdata.com"
-# token = "TU_TOKEN_NUEVO"
-# org = "0925ccf91ab36478"
-# bucket = "EXTREME_MANUFACTURING"
-INF_SECRETS = st.secrets.get("influxdb", {})
-INFLUXDB_URL = INF_SECRETS.get("url", os.getenv("INFLUXDB_URL"))
-INFLUXDB_TOKEN = INF_SECRETS.get("token", os.getenv("INFLUXDB_TOKEN"))
-INFLUXDB_ORG = INF_SECRETS.get("org", os.getenv("INFLUXDB_ORG", "0925ccf91ab36478"))
-INFLUXDB_BUCKET = INF_SECRETS.get("bucket", os.getenv("INFLUXDB_BUCKET", "EXTREME_MANUFACTURING"))
+# --- Credenciales InfluxDB (modo local / pruebas) ---
+INFLUXDB_URL = "https://us-east-1-1.aws.cloud2.influxdata.com"
+INFLUXDB_TOKEN = "JcKXoXE30JQvV9Ggb4-zv6sQc0Zh6B6Haz5eMRW0FrJEduG2KcFJN9-7RoYvVORcFgtrHR-Q_ly-52pD7IC6JQ=="
+INFLUXDB_ORG = "0925ccf91ab36478"
+INFLUXDB_BUCKET = "EXTREME_MANUFACTURING"
 
-if not (INFLUXDB_URL and INFLUXDB_TOKEN and INFLUXDB_ORG and INFLUXDB_BUCKET):
-    st.error("❌ Faltan credenciales de InfluxDB. Configura st.secrets['influxdb'].")
+# Cliente InfluxDB
+try:
+    client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+    query_api = client.query_api()
+except Exception as e:
+    st.error(f"❌ Error conectando a InfluxDB: {e}")
     st.stop()
-
-# Cliente Influx
-client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
-query_api = client.query_api()
 
 # =========================
 # CONTROLES DE UI
@@ -89,7 +82,6 @@ def load_dataframe(query: str) -> pd.DataFrame:
         if isinstance(df, list) and len(df) > 0:
             df = pd.concat(df, ignore_index=True)
         if isinstance(df, pd.DataFrame) and not df.empty:
-            # columnas mínimas
             df = df[["_time", "_field", "_value"]].rename(
                 columns={"_time": "Tiempo", "_field": "Variable", "_value": "Valor"}
             )
@@ -99,6 +91,7 @@ def load_dataframe(query: str) -> pd.DataFrame:
     except Exception as e:
         raise RuntimeError(f"Error consultando InfluxDB: {e}")
 
+# Consulta dinámica
 if sensor == "DHT22":
     flux = build_flux_query("studio-dht22", DHT_FIELDS, rango_dias)
 else:
@@ -117,25 +110,19 @@ if df is None or df.empty:
 # =========================
 # PREPROCESO Y FEATURES
 # =========================
-# Pivot para tener columnas por variable (útil para KPIs y export)
 wide = df.pivot_table(index="Tiempo", columns="Variable", values="Valor", aggfunc="last")
 wide = wide.sort_index()
-# Resampling para performance/consistencia temporal
 wide = wide.resample(resample_rule).mean()
 
-# Para MPU: magnitud de aceleración (característica útil)
 if {"accel_x", "accel_y", "accel_z"}.issubset(wide.columns):
     wide["accel_mag"] = np.sqrt(wide["accel_x"]**2 + wide["accel_y"]**2 + wide["accel_z"]**2)
 
-# Lista de variables disponibles tras pivot
 vars_disponibles = [c for c in wide.columns if pd.api.types.is_numeric_dtype(wide[c])]
 if not vars_disponibles:
     st.warning("No hay variables numéricas tras el resampling.")
     st.stop()
 
-# Selector de variables a graficar
-vars_sel = st.multiselect("Variables a visualizar", vars_disponibles,
-                          default=[vars_disponibles[0]])
+vars_sel = st.multiselect("Variables a visualizar", vars_disponibles, default=[vars_disponibles[0]])
 
 # =========================
 # KPIs
@@ -202,17 +189,14 @@ for v in vars_sel:
         st.info(f"{v}: se requieren ≥10 puntos para ajustar regresión.")
         continue
 
-    # X: tiempo en segundos relativos
     t0 = serie.index[0]
     X = (serie.index - t0).total_seconds().values.reshape(-1, 1)
     y = serie.values
 
-    # Ajuste
     model = LinearRegression()
     model.fit(X, y)
     y_hat = model.predict(X)
 
-    # Horizonte futuro
     last_t = serie.index[-1]
     freq_seconds = max(1, int(pd.Timedelta(resample_rule).total_seconds() or 60))
     steps = int((horizon_min * 60) / freq_seconds)
@@ -220,7 +204,6 @@ for v in vars_sel:
     X_fut = ((pd.Index(fut_index) - t0).total_seconds()).values.reshape(-1, 1)
     y_fut = model.predict(X_fut)
 
-    # Plot
     pred_df = pd.DataFrame({
         "Tiempo": list(serie.index) + fut_index,
         "Valor": list(serie.values) + [np.nan]*len(fut_index),
